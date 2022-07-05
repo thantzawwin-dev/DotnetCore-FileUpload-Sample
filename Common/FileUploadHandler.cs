@@ -5,27 +5,35 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
-using FileUploadApi.Models;
-
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Newtonsoft.Json;
+
+using FileUploadApi.Models;
 using FileUploadApi.Common;
 
 namespace FileUploadApi.Common;
 public class FileUploadHandler
 {
 
-  public static string baseFolder = "./UploadData";
+  private readonly IServer server;
+
+    public FileUploadHandler(IServer server)
+    {
+        this.server = server;
+    }
+  public static string baseFolder = "UploadData";
   public static string subFolder = "Images";
 
   public static void InitDevImagePath()
   {
-    baseFolder = "./UploadData";
+    baseFolder = "UploadData";
     subFolder = "Images";
   }
 
   public static void InitProductionImagePath()
   {
-    baseFolder = "./UploadData";
+    baseFolder = "UploadData";
     subFolder = "Images";
   }
 
@@ -137,20 +145,18 @@ public class FileUploadHandler
     return GetImageFormat(fileBytes) != ImageFormat.unknown;
   }
 
-  public static ResultStatus WriteFileUpload(IFormFile? file, string relativePath)
+  public static ResultStatus WriteFileUpload(IFormFile? file, string path)
   {
     ResultStatus result = new ResultStatus();
-    string path = "";
     string fileName = "";
     string extension = "";
     string fileDir = "";
     string savePath = "";
     try
     {
-      extension = "." + file.FileName.Split('.')[file.FileName.Split('.').Length - 1];
-      path = relativePath.Substring(0, relativePath.LastIndexOf('/') + 1);
-      fileName = relativePath.Split('/')[relativePath.Split('/').Length - 1];
-      fileName = fileName.Substring(0, fileName.Length - 4) + extension;
+      //extension = "." + file.FileName.Split('.')[file.FileName.Split('.').Length - 1];
+      extension = Path.GetExtension(file.FileName);
+      fileName = $"{file.FileName.Substring(0, file.FileName.IndexOf(extension))}_{Guid.NewGuid()}{extension}";
 
       fileDir = Path.Combine(Directory.GetCurrentDirectory(), baseFolder, path);
       savePath = Path.Combine(fileDir, fileName);
@@ -165,21 +171,18 @@ public class FileUploadHandler
         file.CopyTo(bits);
         bits.Flush();
       }
+
       result.data = new MyFile()
       {
-        name = file.FileName,
-        fileName = fileName,
-        path = "/" + path,
+        name = fileName,
+        path = savePath,
         size = file.Length,
         contentType = file.ContentType,
       };
     }
-    catch (Exception e)
+    catch (Exception ex)
     {
-      // result.status = false;
-      // result.message = e.Message;
-      return new ResultStatus(false, e.Message);
-      // return result;
+      return new ResultStatus(false, ex.Message);
     }
     return result;
   }

@@ -25,4 +25,10 @@ public class FileUploadResponse: Response
   {
     file = null;
   }
+
+  public FileUploadResponse(HttpStatusCode s, string m)
+  {
+    Status = s;
+    Message = m;
+  }
 }

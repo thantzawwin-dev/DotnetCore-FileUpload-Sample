@@ -50,7 +50,6 @@ public class TreeViewSelect
 public class MyFile
 {
   public string name { get; set; }
-  public string fileName { get; set; }
   public string path { get; set; }
   public string contentType { get; set; }
   public long size { get; set; }
@@ -59,7 +58,6 @@ public class MyFile
   public MyFile()
   {
     name = string.Empty;
-    fileName = string.Empty;
     path = string.Empty;
     size = 0;
     isToDelete = false;
